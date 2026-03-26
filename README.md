@@ -1,4 +1,4 @@
-# 📺 Video Screensaver
+# Video Screensaver
 
 ![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white) ![Kotlin](https://img.shields.io/badge/Kotlin-blueviolet?logo=kotlin&logoColor=white) ![License](https://img.shields.io/badge/license-MIT-blue) ![made at 2am](https://img.shields.io/badge/made_at-2am-black) ![Downloads](https://img.shields.io/github/downloads/MalikHw/vidasscreensaver/total?color=brightgreen) ![PRs](https://img.shields.io/github/issues-pr/MalikHw/vidasscreensaver)
 
