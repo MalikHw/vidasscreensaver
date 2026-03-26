@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.provider.OpenableColumns
 import android.provider.Settings
 import android.view.View
+import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -18,12 +19,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private val videoPicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@registerForActivityResult
-
-        contentResolver.takePersistableUriPermission(
-            uri,
-            Intent.FLAG_GRANT_READ_URI_PERMISSION
-        )
-
+        contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
         prefs.edit().putString("video_uri", uri.toString()).apply()
         binding.tvSelectedFile.text = getFileName(uri) ?: uri.lastPathSegment ?: "some video file"
     }
@@ -35,28 +31,48 @@ class SettingsActivity : AppCompatActivity() {
 
         loadSavedStuff()
         setupListeners()
+        runEntryAnimations()
+    }
+
+    private fun runEntryAnimations() {
+        val anim = AnimationUtils.loadAnimation(this, R.anim.slide_up_fade_in)
+        val groups = listOf(
+            binding.groupHeader,
+            binding.groupVideoCard,
+            binding.groupPlaybackCard,
+            binding.groupScaleCard,
+            binding.groupButtons
+        )
+        groups.forEachIndexed { i, view ->
+            view.visibility = View.VISIBLE
+            val a = anim.clone() ?: return@forEachIndexed
+            a.startOffset = (i * 80).toLong()
+            a.fillAfter = true
+            view.alpha = 1f
+            view.startAnimation(a)
+        }
     }
 
     private fun loadSavedStuff() {
         val uriString = prefs.getString("video_uri", null)
-        if (uriString != null) {
-            val uri = Uri.parse(uriString)
-            binding.tvSelectedFile.text = getFileName(uri) ?: "video selected"
+        binding.tvSelectedFile.text = if (uriString != null) {
+            getFileName(Uri.parse(uriString)) ?: "video selected"
         } else {
-            binding.tvSelectedFile.text = getString(R.string.no_video_selected)
+            getString(R.string.no_video_selected)
         }
 
         val soundOn = prefs.getBoolean("sound_on", false)
         binding.cbSound.isChecked = soundOn
         binding.layoutVolumeSlider.visibility = if (soundOn) View.VISIBLE else View.GONE
         binding.seekVolume.progress = (prefs.getFloat("volume", 0.5f) * 100).toInt()
-
         binding.cbLoop.isChecked = prefs.getBoolean("loop", true)
 
-        if (prefs.getBoolean("scale_fill", true)) {
-            binding.rbFill.isChecked = true
-        } else {
-            binding.rbFit.isChecked = true
+        when (prefs.getString("scale_mode", "zoom")) {
+            "fit"     -> binding.rbFit.isChecked = true
+            "stretch" -> binding.rbStretch.isChecked = true
+            "zoom"    -> binding.rbZoom.isChecked = true
+            "adapt"   -> binding.rbAdapt.isChecked = true
+            else      -> binding.rbZoom.isChecked = true
         }
     }
 
@@ -74,30 +90,14 @@ class SettingsActivity : AppCompatActivity() {
             Toast.makeText(this, "Saved!", Toast.LENGTH_SHORT).show()
         }
 
-        binding.btnPreview.setOnClickListener {
-            saveSettings()
-            if (prefs.getString("video_uri", null) == null) {
-                Toast.makeText(this, "Pick a video first lol", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            val intent = Intent(Intent.ACTION_MAIN)
-            intent.setClassName("com.android.systemui", "com.android.systemui.Somnambulator")
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            try {
-                startActivity(intent)
-            } catch (e: Exception) {
-                Toast.makeText(this, "Preview failed — use the system settings button instead", Toast.LENGTH_LONG).show()
-            }
-        }
-
         binding.btnSystemSettings.setOnClickListener {
             try {
                 startActivity(Intent(Settings.ACTION_DREAM_SETTINGS))
             } catch (e: Exception) {
                 try {
-                    val intent = Intent()
-                    intent.setClassName("com.android.settings", "com.android.settings.Settings\$DreamSettingsActivity")
-                    startActivity(intent)
+                    val i = Intent()
+                    i.setClassName("com.android.settings", "com.android.settings.Settings\$DreamSettingsActivity")
+                    startActivity(i)
                 } catch (e2: Exception) {
                     Toast.makeText(this, "Your phone really doesn't want you to find this setting huh", Toast.LENGTH_LONG).show()
                 }
@@ -111,14 +111,25 @@ class SettingsActivity : AppCompatActivity() {
         binding.btnSourceCode.setOnClickListener {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/MalikHw/vidasscreensaver")))
         }
+
+        binding.btnYouTube.setOnClickListener {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://youtube.com/@MalikHw47")))
+        }
     }
 
     private fun saveSettings() {
+        val scaleMode = when (binding.rgScale.checkedRadioButtonId) {
+            R.id.rbFit     -> "fit"
+            R.id.rbStretch -> "stretch"
+            R.id.rbZoom    -> "zoom"
+            R.id.rbAdapt   -> "adapt"
+            else           -> "zoom"
+        }
         prefs.edit().apply {
             putBoolean("sound_on", binding.cbSound.isChecked)
             putFloat("volume", binding.seekVolume.progress / 100f)
             putBoolean("loop", binding.cbLoop.isChecked)
-            putBoolean("scale_fill", binding.rbFill.isChecked)
+            putString("scale_mode", scaleMode)
             apply()
         }
     }
@@ -126,9 +137,9 @@ class SettingsActivity : AppCompatActivity() {
     private fun getFileName(uri: Uri): String? {
         return try {
             contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-                val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                val idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
                 cursor.moveToFirst()
-                cursor.getString(nameIndex)
+                cursor.getString(idx)
             }
         } catch (e: Exception) {
             null
