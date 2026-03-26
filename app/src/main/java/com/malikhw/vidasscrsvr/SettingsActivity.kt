@@ -35,7 +35,6 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun runEntryAnimations() {
-        val anim = AnimationUtils.loadAnimation(this, R.anim.slide_up_fade_in)
         val groups = listOf(
             binding.groupHeader,
             binding.groupVideoCard,
@@ -45,7 +44,7 @@ class SettingsActivity : AppCompatActivity() {
         )
         groups.forEachIndexed { i, view ->
             view.visibility = View.VISIBLE
-            val a = anim.clone() ?: return@forEachIndexed
+            val a = AnimationUtils.loadAnimation(this, R.anim.slide_up_fade_in)
             a.startOffset = (i * 80).toLong()
             a.fillAfter = true
             view.alpha = 1f
