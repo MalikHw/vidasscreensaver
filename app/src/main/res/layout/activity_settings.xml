@@ -6,32 +6,43 @@
     android:fillViewport="true">
 
     <LinearLayout
+        android:id="@+id/rootLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="24dp">
 
-        <TextView
+        <LinearLayout
+            android:id="@+id/groupHeader"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/app_name"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorPrimary" />
+            android:orientation="vertical"
+            android:alpha="0"
+            android:layout_marginBottom="24dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="By MalikHw47"
-            android:textSize="12sp"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            android:layout_marginBottom="24dp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/app_name"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorPrimary" />
 
-        <!-- video picker card -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="By MalikHw47"
+                android:textSize="12sp"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+        </LinearLayout>
+
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/groupVideoCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
+            android:alpha="0"
             app:cardElevation="2dp"
             app:cardCornerRadius="12dp">
 
@@ -70,11 +81,12 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- playback options card -->
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/groupPlaybackCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
+            android:alpha="0"
             app:cardElevation="2dp"
             app:cardCornerRadius="12dp">
 
@@ -137,11 +149,12 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- scale card -->
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/groupScaleCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
+            android:alpha="0"
             app:cardElevation="2dp"
             app:cardCornerRadius="12dp">
 
@@ -162,89 +175,112 @@
                     android:layout_marginBottom="8dp" />
 
                 <RadioGroup
-                    android:layout_width="wrap_content"
+                    android:id="@+id/rgScale"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.radiobutton.MaterialRadioButton
-                        android:id="@+id/rbFill"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Fill"
-                        android:checked="true"
-                        android:layout_marginEnd="16dp" />
+                    android:orientation="vertical">
 
                     <com.google.android.material.radiobutton.MaterialRadioButton
                         android:id="@+id/rbFit"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Fit" />
+                        android:text="Fit — full video visible, letterboxed" />
+
+                    <com.google.android.material.radiobutton.MaterialRadioButton
+                        android:id="@+id/rbStretch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Stretch — fills screen, squishes if needed"
+                        android:layout_marginTop="4dp" />
+
+                    <com.google.android.material.radiobutton.MaterialRadioButton
+                        android:id="@+id/rbZoom"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Zoom — fills screen, crops edges"
+                        android:checked="true"
+                        android:layout_marginTop="4dp" />
+
+                    <com.google.android.material.radiobutton.MaterialRadioButton
+                        android:id="@+id/rbAdapt"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Adapt — fit + black bars (good for 9:16 on wide screens)"
+                        android:layout_marginTop="4dp" />
 
                 </RadioGroup>
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- action buttons -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSave"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="SAVE"
-            android:layout_marginBottom="8dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPreview"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Preview Screensaver"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_marginBottom="8dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSystemSettings"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Open System Daydream Settings"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_marginBottom="32dp" />
-
-        <!-- footer row -->
         <LinearLayout
+            android:id="@+id/groupButtons"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
+            android:orientation="vertical"
+            android:alpha="0">
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnDonate"
-                android:layout_width="0dp"
+                android:id="@+id/btnSave"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Donate ❤️"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_marginEnd="8dp" />
+                android:text="SAVE"
+                android:layout_marginBottom="8dp" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSourceCode"
-                android:layout_width="0dp"
+                android:id="@+id/btnSystemSettings"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Source Code"
-                style="@style/Widget.Material3.Button.OutlinedButton" />
+                android:text="Open System Daydream Settings"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_marginBottom="32dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnDonate"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Donate"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_marginEnd="6dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSourceCode"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Source"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_marginEnd="6dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnYouTube"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="YouTube"
+                    style="@style/Widget.Material3.Button.OutlinedButton" />
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:gravity="center"
+                android:text="made this cuz i couldn\'t find it on the play store\nalso i was bored"
+                android:textSize="11sp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:alpha="0.55"
+                android:layout_marginBottom="8dp" />
 
         </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:gravity="center"
-            android:text="made this cuz i couldn\'t find it on the play store\nalso i was bored"
-            android:textSize="11sp"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            android:alpha="0.55"
-            android:layout_marginBottom="8dp" />
 
     </LinearLayout>
 
