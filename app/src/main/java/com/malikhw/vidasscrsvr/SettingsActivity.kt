@@ -24,6 +24,14 @@ class SettingsActivity : AppCompatActivity() {
         binding.tvSelectedFile.text = getFileName(uri) ?: uri.lastPathSegment ?: "some video file"
     }
 
+    private val catalogLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val uriString = prefs.getString("video_uri", null) ?: return@registerForActivityResult
+            val uri = Uri.parse(uriString)
+            binding.tvSelectedFile.text = uri.lastPathSegment?.substringAfterLast("/") ?: "catalog video"
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
@@ -78,6 +86,10 @@ class SettingsActivity : AppCompatActivity() {
     private fun setupListeners() {
         binding.btnChooseVideo.setOnClickListener {
             videoPicker.launch(arrayOf("video/mp4", "video/*"))
+        }
+
+        binding.btnBrowseCatalog.setOnClickListener {
+            catalogLauncher.launch(Intent(this, CatalogActivity::class.java))
         }
 
         binding.cbSound.setOnCheckedChangeListener { _, checked ->
