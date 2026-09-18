@@ -40,6 +40,14 @@ class SettingsActivity : AppCompatActivity() {
         loadSavedStuff()
         setupListeners()
         runEntryAnimations()
+
+        // TV remote (D-pad) support: give the first control initial focus so a
+        // remote can start navigating immediately instead of landing nowhere.
+        if (packageManager.hasSystemFeature("android.software.leanback") ||
+            packageManager.hasSystemFeature("android.hardware.type.television")
+        ) {
+            binding.btnChooseVideo.requestFocus()
+        }
     }
 
     private fun runEntryAnimations() {
@@ -116,7 +124,11 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         binding.btnDonate.setOnClickListener {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://malikhw.github.io/donate")))
+            DonateDialog.show(this)
+        }
+
+        binding.btnInfo.setOnClickListener {
+            AboutDialog.show(this)
         }
 
         binding.btnSourceCode.setOnClickListener {

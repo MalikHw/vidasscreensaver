@@ -23,7 +23,22 @@ android {
             keyPassword "android"
         }
         release {
-            initWith debug
+            def ksFile       = System.getenv("KEYSTORE_FILE")
+            def requireSign  = System.getenv("REQUIRE_RELEASE_SIGNING") == "true"
+            def ksExists     = ksFile != null && file(ksFile).exists()
+
+            if (ksExists) {
+                storeFile     file(ksFile)
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias      System.getenv("KEY_ALIAS")
+                keyPassword   System.getenv("KEY_PASSWORD")
+            } else if (requireSign) {
+                throw new GradleException(
+                    "Release signing required but KEYSTORE_FILE is unset or missing " +
+                    "(KEYSTORE_FILE=${ksFile}). Refusing to silently fall back to debug signing.")
+            } else {
+                initWith debug
+            }
         }
     }
 
@@ -59,4 +74,8 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.media3:media3-exoplayer:1.2.1'
     implementation 'androidx.media3:media3-ui:1.2.1'
+
+    // Google Play Billing (Donate dialog - copied from orbit-screensaver-android)
+    implementation 'com.android.billingclient:billing-ktx:8.0.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
 }

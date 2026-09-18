@@ -1,0 +1,15 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+    <!-- Simple placeholder banner so the app has a valid android:banner for the
+         Android TV Leanback launcher row. Swap this out for real branded
+         artwork (a 320x180 PNG) whenever you get the chance. -->
+    <path
+        android:fillColor="#1A1A1A"
+        android:pathData="M0,0h320v180h-320z" />
+    <path
+        android:fillColor="#FF6B35"
+        android:pathData="M0,164h320v16h-320z" />
+</vector>
