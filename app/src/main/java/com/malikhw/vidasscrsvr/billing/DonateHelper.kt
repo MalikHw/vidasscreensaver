@@ -41,9 +41,14 @@ class DonateHelper(private val context: Context, private val onPurchaseSuccess: 
                                 val consumeParams = ConsumeParams.newBuilder()
                                     .setPurchaseToken(purchase.purchaseToken)
                                     .build()
+                                val client = billingClient ?: return@launch
                                 repeat(3) { attempt ->
-                                    val consumeResult = billingClient?.consumePurchase(consumeParams)
-                                    if (consumeResult?.billingResult?.responseCode == BillingClient.BillingResponseCode.OK) {
+                                    val consumeResult = kotlinx.coroutines.suspendCancellableCoroutine<BillingResult> { cont ->
+                                        client.consumeAsync(consumeParams) { billingResult, _ ->
+                                            cont.resume(billingResult) {}
+                                        }
+                                    }
+                                    if (consumeResult.responseCode == BillingClient.BillingResponseCode.OK) {
                                         onPurchaseSuccess()
                                         return@launch
                                     }
@@ -101,7 +106,11 @@ class DonateHelper(private val context: Context, private val onPurchaseSuccess: 
                     val consumeParams = ConsumeParams.newBuilder()
                         .setPurchaseToken(purchase.purchaseToken)
                         .build()
-                    client.consumePurchase(consumeParams)
+                    kotlinx.coroutines.suspendCancellableCoroutine<BillingResult> { cont ->
+                        client.consumeAsync(consumeParams) { billingResult, _ ->
+                            cont.resume(billingResult) {}
+                        }
+                    }
                 }
         }
     }
