@@ -27,5 +27,12 @@ replay_pid*
 .kotlin/
 # ...fml
 
-# Keystore files
 keystore/*.keystore
+keystore/*.keystore.b64
+
+# Android Studio
+.idea/
+*.iml
+local.properties
+build/
+.gradle/
