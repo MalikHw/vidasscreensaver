@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import org.json.JSONArray
+import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
@@ -35,6 +36,26 @@ class CatalogActivity : AppCompatActivity() {
 
     private val executor = Executors.newSingleThreadExecutor()
     private val mainHandler by lazy { android.os.Handler(mainLooper) }
+    private val prefs by lazy { getSharedPreferences("vid_scrsvr_prefs", MODE_PRIVATE) }
+    private fun getDownloadedMap(): Map<String, String> {
+        val raw = prefs.getString("downloaded_catalog", null) ?: return emptyMap()
+        return try {
+            val obj = JSONObject(raw)
+            obj.keys().asSequence().associateWith { obj.getString(it) }
+        } catch (_: Exception) {
+            emptyMap()
+        }
+    }
+    private fun saveDownloadEntry(videoUrl: String, filePath: String) {
+        val map = getDownloadedMap().toMutableMap()
+        map[videoUrl] = filePath
+        prefs.edit().putString("downloaded_catalog", JSONObject(map as Map<*, *>).toString()).apply()
+    }
+    private fun getAppliedUri(): String? = prefs.getString("video_uri", null)
+    private fun applyLocalFile(file: File) {
+        val uri = Uri.fromFile(file)
+        prefs.edit().putString("video_uri", uri.toString()).apply()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,21 +99,80 @@ class CatalogActivity : AppCompatActivity() {
                         tvError.visibility = View.VISIBLE
                         tvError.text = "Catalog is empty. Be the first to submit!"
                     } else {
-                        recycler.adapter = CatalogAdapter(videos) { video ->
-                            startDownload(video)
-                        }
+                        showCatalog(recycler, videos)
                     }
                 }
             } catch (e: Exception) {
-                mainHandler.post {
-                    progressBar.visibility = View.GONE
-                    tvError.visibility = View.VISIBLE
-                    tvError.text = "Couldn't load catalog. Check your connection."
+                // Network failed — fall back to previously downloaded videos
+                val downloadedMap = getDownloadedMap()
+                if (downloadedMap.isNotEmpty()) {
+                    val offlineVideos = downloadedMap.keys.mapNotNull { url ->
+                        val path = downloadedMap[url] ?: return@mapNotNull null
+                        if (!File(path).exists()) return@mapNotNull null
+                        val fileName = File(path).nameWithoutExtension
+                            .removePrefix("catalog_")
+                            .replace("_", " ")
+                        CatalogVideo(
+                            name = fileName,
+                            creator = "Downloaded",
+                            videoUrl = url,
+                            thumbUrl = ""
+                        )
+                    }
+                    mainHandler.post {
+                        progressBar.visibility = View.GONE
+                        if (offlineVideos.isEmpty()) {
+                            tvError.visibility = View.VISIBLE
+                            tvError.text = "Couldn't load catalog. Check your connection."
+                        } else {
+                            tvError.visibility = View.VISIBLE
+                            tvError.text = "Offline — showing downloaded videos only"
+                            showCatalog(recycler, offlineVideos)
+                        }
+                    }
+                } else {
+                    mainHandler.post {
+                        progressBar.visibility = View.GONE
+                        tvError.visibility = View.VISIBLE
+                        tvError.text = "Couldn't load catalog. Check your connection."
+                    }
                 }
             }
         }
     }
 
+    private fun showCatalog(recycler: RecyclerView, videos: List<CatalogVideo>) {
+        recycler.adapter = CatalogAdapter(
+            items = videos,
+            downloadedMap = getDownloadedMap(),
+            appliedUri = getAppliedUri()
+        ) { video ->
+            handleVideoClick(video)
+        }
+    }
+    private fun handleVideoClick(video: CatalogVideo) {
+        val downloadedMap = getDownloadedMap()
+        val localPath = downloadedMap[video.videoUrl]
+        val localFile = if (localPath != null) File(localPath) else null
+        val appliedUri = getAppliedUri()
+        when {
+            localFile != null && localFile.exists() &&
+                    Uri.fromFile(localFile).toString() == appliedUri -> {
+                Toast.makeText(this, "${video.name} is already in use!", Toast.LENGTH_SHORT).show()
+            }
+            localFile != null && localFile.exists() -> {
+                applyLocalFile(localFile)
+                Toast.makeText(this, "${video.name} applied!", Toast.LENGTH_SHORT).show()
+                val recycler = findViewById<RecyclerView>(R.id.rvCatalog)
+                (recycler.adapter as? CatalogAdapter)?.updateState(
+                    newDownloadedMap = getDownloadedMap(),
+                    newAppliedUri = getAppliedUri()
+                )
+                setResult(RESULT_OK)
+            }
+            else -> startDownload(video)
+        }
+    }
     private fun startDownload(video: CatalogVideo) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_download, null)
         val tvTitle = dialogView.findViewById<TextView>(R.id.tvDownloadTitle)
@@ -137,16 +217,17 @@ class CatalogActivity : AppCompatActivity() {
                 out.close()
                 input.close()
                 conn.disconnect()
-
-                val uri = Uri.fromFile(destFile)
-                val prefs = getSharedPreferences("vid_scrsvr_prefs", MODE_PRIVATE)
-                prefs.edit().putString("video_uri", uri.toString()).apply()
-
+                saveDownloadEntry(video.videoUrl, destFile.absolutePath)
+                applyLocalFile(destFile)
                 mainHandler.post {
                     dialog.dismiss()
                     Toast.makeText(this, "${video.name} applied!", Toast.LENGTH_SHORT).show()
+                    val recycler = findViewById<RecyclerView>(R.id.rvCatalog)
+                    (recycler.adapter as? CatalogAdapter)?.updateState(
+                        newDownloadedMap = getDownloadedMap(),
+                        newAppliedUri = getAppliedUri()
+                    )
                     setResult(RESULT_OK)
-                    finish()
                 }
             } catch (e: Exception) {
                 destFile.delete()
@@ -166,6 +247,8 @@ class CatalogActivity : AppCompatActivity() {
 
 class CatalogAdapter(
     private val items: List<CatalogVideo>,
+    private var downloadedMap: Map<String, String>,
+    private var appliedUri: String?,
     private val onDownload: (CatalogVideo) -> Unit
 ) : RecyclerView.Adapter<CatalogAdapter.VH>() {
 
@@ -173,6 +256,8 @@ class CatalogAdapter(
         val thumb: ImageView = v.findViewById(R.id.ivThumb)
         val title: TextView = v.findViewById(R.id.tvTitle)
         val creator: TextView = v.findViewById(R.id.tvCreator)
+        val checkmark: ImageView = v.findViewById(R.id.ivCheckmark)
+        val scrim: View = v.findViewById(R.id.vCheckScrim)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -185,6 +270,18 @@ class CatalogAdapter(
         val video = items[position]
         holder.title.text = video.name
         holder.creator.text = video.creator
+        val localPath = downloadedMap[video.videoUrl]
+        val localFile = if (localPath != null) java.io.File(localPath) else null
+        val isApplied = localFile != null && localFile.exists() &&
+                Uri.fromFile(localFile).toString() == appliedUri
+        val isDownloaded = localFile != null && localFile.exists()
+        holder.checkmark.visibility = if (isApplied) View.VISIBLE else View.GONE
+        holder.scrim.visibility = if (isApplied) View.VISIBLE else View.GONE
+        holder.itemView.alpha = when {
+            isApplied -> 1f
+            isDownloaded -> 0.85f
+            else -> 1f
+        }
 
         holder.thumb.setImageResource(android.R.drawable.ic_menu_slideshow)
 
@@ -208,4 +305,10 @@ class CatalogAdapter(
     }
 
     override fun getItemCount() = items.size
+
+    fun updateState(newDownloadedMap: Map<String, String>, newAppliedUri: String?) {
+        downloadedMap = newDownloadedMap
+        appliedUri = newAppliedUri
+        notifyDataSetChanged()
+    }
 }

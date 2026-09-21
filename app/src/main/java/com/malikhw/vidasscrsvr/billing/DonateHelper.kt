@@ -49,7 +49,9 @@ class DonateHelper(private val context: Context, private val onPurchaseSuccess: 
                                         }
                                     }
                                     if (consumeResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                                        onPurchaseSuccess()
+                                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                            onPurchaseSuccess()
+                                        }
                                         return@launch
                                     }
                                     kotlinx.coroutines.delay(1000L * (attempt + 1))
