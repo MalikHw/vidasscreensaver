@@ -36,9 +36,9 @@ jobs:
             chmod +x gradlew
           else
             echo "Gradle wrapper missing or incomplete. Generating wrapper..."
-            wget -q https://services.gradle.org/distributions/gradle-8.4-bin.zip -O /tmp/gradle-8.4-bin.zip
-            unzip -q /tmp/gradle-8.4-bin.zip -d /tmp/gradle
-            /tmp/gradle/gradle-8.4/bin/gradle wrapper --gradle-version 8.4 --distribution-type bin
+            wget -q https://services.gradle.org/distributions/gradle-8.7-bin.zip -O /tmp/gradle-8.7-bin.zip
+            unzip -q /tmp/gradle-8.7-bin.zip -d /tmp/gradle
+            /tmp/gradle/gradle-8.7/bin/gradle wrapper --gradle-version 8.7 --distribution-type bin
             chmod +x gradlew
 
             echo "Committing and pushing Gradle wrapper..."
@@ -50,7 +50,7 @@ jobs:
           fi
 
       - name: Decode release keystore from secrets
-        if: ${{ env.KEYSTORE_BASE64 != '' }}
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
