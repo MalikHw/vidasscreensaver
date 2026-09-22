@@ -47,11 +47,13 @@ class CatalogActivity : AppCompatActivity() {
             emptyMap()
         }
     }
+
     private fun saveDownloadEntry(videoUrl: String, filePath: String) {
         val map = getDownloadedMap().toMutableMap()
         map[videoUrl] = filePath
         prefs.edit().putString("downloaded_catalog", JSONObject(map as Map<*, *>).toString()).apply()
     }
+
     private fun getAppliedUri(): String? = prefs.getString("video_uri", null)
     private fun applyLocalFile(file: File) {
         val uri = Uri.fromFile(file)
@@ -64,8 +66,12 @@ class CatalogActivity : AppCompatActivity() {
         setContentView(R.layout.activity_catalog)
 
         findViewById<MaterialButton>(R.id.btnSubmitVideo).setOnClickListener {
-            startActivity(Intent(Intent.ACTION_VIEW,
-                Uri.parse("https://github.com/MalikHw/vidasscreensaver/issues/new?template=video-request.md")))
+            startActivity(
+                Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://github.com/MalikHw/vidasscreensaver/issues/new?template=video-request.md")
+                )
+            )
         }
 
         val recycler = findViewById<RecyclerView>(R.id.rvCatalog)
@@ -87,12 +93,14 @@ class CatalogActivity : AppCompatActivity() {
                 val videos = mutableListOf<CatalogVideo>()
                 for (i in 0 until arr.length()) {
                     val obj = arr.getJSONObject(i)
-                    videos.add(CatalogVideo(
-                        name = obj.optString("name", "Untitled"),
-                        creator = obj.optString("creator", "Unknown"),
-                        videoUrl = obj.optString("video_url", ""),
-                        thumbUrl = obj.optString("thumb_url", "")
-                    ))
+                    videos.add(
+                        CatalogVideo(
+                            name = obj.optString("name", "Untitled"),
+                            creator = obj.optString("creator", "Unknown"),
+                            videoUrl = obj.optString("video_url", ""),
+                            thumbUrl = obj.optString("thumb_url", "")
+                        )
+                    )
                 }
 
                 mainHandler.post {
@@ -111,14 +119,25 @@ class CatalogActivity : AppCompatActivity() {
                     val offlineVideos = downloadedMap.keys.mapNotNull { url ->
                         val path = downloadedMap[url] ?: return@mapNotNull null
                         if (!File(path).exists()) return@mapNotNull null
-                        val fileName = File(path).nameWithoutExtension
+                        val videoFile = File(path)
+                        val safeName = videoFile.nameWithoutExtension
+                        val fileName = safeName
                             .removePrefix("catalog_")
                             .replace("_", " ")
+
+                        val pngThumb = File(filesDir, "${safeName}_thumb.png")
+                        val jpgThumb = File(filesDir, "${safeName}_thumb.jpg")
+                        val thumbPath = when {
+                            pngThumb.exists() -> pngThumb.absolutePath
+                            jpgThumb.exists() -> jpgThumb.absolutePath
+                            else -> ""
+                        }
+
                         CatalogVideo(
                             name = fileName,
                             creator = "Downloaded",
                             videoUrl = url,
-                            thumbUrl = ""
+                            thumbUrl = thumbPath
                         )
                     }
                     mainHandler.post {
@@ -152,6 +171,7 @@ class CatalogActivity : AppCompatActivity() {
             handleVideoClick(video)
         }
     }
+
     private fun handleVideoClick(video: CatalogVideo) {
         val downloadedMap = getDownloadedMap()
         val localPath = downloadedMap[video.videoUrl]
@@ -162,6 +182,7 @@ class CatalogActivity : AppCompatActivity() {
                     Uri.fromFile(localFile).toString() == appliedUri -> {
                 Toast.makeText(this, "${video.name} is already in use!", Toast.LENGTH_SHORT).show()
             }
+
             localFile != null && localFile.exists() -> {
                 applyLocalFile(localFile)
                 Toast.makeText(this, "${video.name} applied!", Toast.LENGTH_SHORT).show()
@@ -172,9 +193,11 @@ class CatalogActivity : AppCompatActivity() {
                 )
                 setResult(RESULT_OK)
             }
+
             else -> startDownload(video)
         }
     }
+
     private fun startDownload(video: CatalogVideo) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_download, null)
         val tvTitle = dialogView.findViewById<TextView>(R.id.tvDownloadTitle)
@@ -219,6 +242,29 @@ class CatalogActivity : AppCompatActivity() {
                 out.close()
                 input.close()
                 conn.disconnect()
+
+                if (video.thumbUrl.isNotEmpty() && video.thumbUrl.startsWith("http")) {
+                    try {
+                        val thumbExt = if (video.thumbUrl.contains(".png", ignoreCase = true)) ".png" else ".jpg"
+                        val destThumbFile = File(filesDir, "catalog_${video.name.replace(" ", "_")}_thumb$thumbExt")
+                        val tConn = URL(video.thumbUrl).openConnection() as HttpURLConnection
+                        tConn.connectTimeout = 5000
+                        tConn.readTimeout = 10000
+                        val tInput = tConn.inputStream
+                        val tOut = FileOutputStream(destThumbFile)
+                        val tBuf = ByteArray(8192)
+                        var tRead: Int
+                        while (tInput.read(tBuf).also { tRead = it } != -1) {
+                            tOut.write(tBuf, 0, tRead)
+                        }
+                        tOut.flush()
+                        tOut.close()
+                        tInput.close()
+                        tConn.disconnect()
+                    } catch (_: Exception) {
+                    }
+                }
+
                 saveDownloadEntry(video.videoUrl, destFile.absolutePath)
                 applyLocalFile(destFile)
                 mainHandler.post {
@@ -286,15 +332,38 @@ class CatalogAdapter(
         holder.thumb.setImageResource(android.R.drawable.ic_menu_slideshow)
 
         if (video.thumbUrl.isNotEmpty()) {
-            Thread {
-                try {
-                    val conn = URL(video.thumbUrl).openConnection() as HttpURLConnection
-                    conn.connectTimeout = 5000
-                    val bmp = android.graphics.BitmapFactory.decodeStream(conn.inputStream)
-                    conn.disconnect()
-                    holder.thumb.post { holder.thumb.setImageBitmap(bmp) }
-                } catch (_: Exception) {}
-            }.start()
+            if (!video.thumbUrl.startsWith("http")) {
+                val bmp = android.graphics.BitmapFactory.decodeFile(video.thumbUrl)
+                if (bmp != null) {
+                    holder.thumb.setImageBitmap(bmp)
+                }
+            } else {
+                val safeName = video.name.replace(" ", "_")
+                val pngThumb = File(holder.itemView.context.filesDir, "catalog_${safeName}_thumb.png")
+                val jpgThumb = File(holder.itemView.context.filesDir, "catalog_${safeName}_thumb.jpg")
+                val localThumb = when {
+                    pngThumb.exists() -> pngThumb
+                    jpgThumb.exists() -> jpgThumb
+                    else -> null
+                }
+                if (localThumb != null) {
+                    val bmp = android.graphics.BitmapFactory.decodeFile(localThumb.absolutePath)
+                    if (bmp != null) {
+                        holder.thumb.setImageBitmap(bmp)
+                    }
+                } else {
+                    Thread {
+                        try {
+                            val conn = URL(video.thumbUrl).openConnection() as HttpURLConnection
+                            conn.connectTimeout = 5000
+                            val bmp = android.graphics.BitmapFactory.decodeStream(conn.inputStream)
+                            conn.disconnect()
+                            holder.thumb.post { holder.thumb.setImageBitmap(bmp) }
+                        } catch (_: Exception) {
+                        }
+                    }.start()
+                }
+            }
         }
 
         val anim = AnimationUtils.loadAnimation(holder.itemView.context, R.anim.slide_up_fade_in)
