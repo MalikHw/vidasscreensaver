@@ -10,6 +10,7 @@ import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.color.DynamicColors
 import com.malikhw.vidasscrsvr.databinding.ActivitySettingsBinding
 
 class SettingsActivity : AppCompatActivity() {
@@ -21,18 +22,22 @@ class SettingsActivity : AppCompatActivity() {
         if (uri == null) return@registerForActivityResult
         contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
         prefs.edit().putString("video_uri", uri.toString()).apply()
-        binding.tvSelectedFile.text = getFileName(uri) ?: uri.lastPathSegment ?: "some video file"
+        val name = getVideoDisplayName(uri)
+        binding.tvSelectedFile.text = "selected $name"
     }
 
-    private val catalogLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == RESULT_OK) {
-            val uriString = prefs.getString("video_uri", null) ?: return@registerForActivityResult
-            val uri = Uri.parse(uriString)
-            binding.tvSelectedFile.text = uri.lastPathSegment?.substringAfterLast("/") ?: "catalog video"
+    private val catalogLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val uriString = prefs.getString("video_uri", null) ?: return@registerForActivityResult
+                val uri = Uri.parse(uriString)
+                val name = getVideoDisplayName(uri)
+                binding.tvSelectedFile.text = "selected $name"
+            }
         }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        DynamicColors.applyToActivityIfAvailable(this)
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -71,7 +76,8 @@ class SettingsActivity : AppCompatActivity() {
     private fun loadSavedStuff() {
         val uriString = prefs.getString("video_uri", null)
         binding.tvSelectedFile.text = if (uriString != null) {
-            getFileName(Uri.parse(uriString)) ?: "video selected"
+            val name = getVideoDisplayName(Uri.parse(uriString))
+            "selected $name"
         } else {
             getString(R.string.no_video_selected)
         }
@@ -83,11 +89,11 @@ class SettingsActivity : AppCompatActivity() {
         binding.cbLoop.isChecked = prefs.getBoolean("loop", true)
 
         when (prefs.getString("scale_mode", "zoom")) {
-            "fit"     -> binding.rbFit.isChecked = true
+            "fit" -> binding.rbFit.isChecked = true
             "stretch" -> binding.rbStretch.isChecked = true
-            "zoom"    -> binding.rbZoom.isChecked = true
-            "adapt"   -> binding.rbAdapt.isChecked = true
-            else      -> binding.rbZoom.isChecked = true
+            "zoom" -> binding.rbZoom.isChecked = true
+            "adapt" -> binding.rbAdapt.isChecked = true
+            else -> binding.rbZoom.isChecked = true
         }
     }
 
@@ -118,7 +124,11 @@ class SettingsActivity : AppCompatActivity() {
                     i.setClassName("com.android.settings", "com.android.settings.Settings\$DreamSettingsActivity")
                     startActivity(i)
                 } catch (e2: Exception) {
-                    Toast.makeText(this, "Your phone really doesn't want you to find this setting huh", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        this,
+                        "Your phone really doesn't want you to find this setting huh",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }
@@ -134,19 +144,15 @@ class SettingsActivity : AppCompatActivity() {
         binding.btnSourceCode.setOnClickListener {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/MalikHw/vidasscreensaver")))
         }
-
-        binding.btnYouTube.setOnClickListener {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://youtube.com/@MalikHw47")))
-        }
     }
 
     private fun saveSettings() {
         val scaleMode = when (binding.rgScale.checkedRadioButtonId) {
-            R.id.rbFit     -> "fit"
+            R.id.rbFit -> "fit"
             R.id.rbStretch -> "stretch"
-            R.id.rbZoom    -> "zoom"
-            R.id.rbAdapt   -> "adapt"
-            else           -> "zoom"
+            R.id.rbZoom -> "zoom"
+            R.id.rbAdapt -> "adapt"
+            else -> "zoom"
         }
         prefs.edit().apply {
             putBoolean("sound_on", binding.cbSound.isChecked)
@@ -166,6 +172,18 @@ class SettingsActivity : AppCompatActivity() {
             }
         } catch (e: Exception) {
             null
+        }
+    }
+
+    private fun getVideoDisplayName(uri: Uri): String {
+        val contentName = getFileName(uri)
+        if (contentName != null) return contentName
+        val lastSegment = uri.lastPathSegment ?: return "video file"
+        val rawName = lastSegment.substringAfterLast("/")
+        return if (rawName.startsWith("catalog_")) {
+            rawName.removePrefix("catalog_").removeSuffix(".mp4").replace("_", " ")
+        } else {
+            rawName
         }
     }
 }

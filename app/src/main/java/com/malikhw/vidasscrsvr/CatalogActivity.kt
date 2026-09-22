@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.color.DynamicColors
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import org.json.JSONArray
 import org.json.JSONObject
@@ -58,6 +59,7 @@ class CatalogActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        DynamicColors.applyToActivityIfAvailable(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_catalog)
 
@@ -257,7 +259,6 @@ class CatalogAdapter(
         val title: TextView = v.findViewById(R.id.tvTitle)
         val creator: TextView = v.findViewById(R.id.tvCreator)
         val checkmark: ImageView = v.findViewById(R.id.ivCheckmark)
-        val scrim: View = v.findViewById(R.id.vCheckScrim)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -276,7 +277,6 @@ class CatalogAdapter(
                 Uri.fromFile(localFile).toString() == appliedUri
         val isDownloaded = localFile != null && localFile.exists()
         holder.checkmark.visibility = if (isApplied) View.VISIBLE else View.GONE
-        holder.scrim.visibility = if (isApplied) View.VISIBLE else View.GONE
         holder.itemView.alpha = when {
             isApplied -> 1f
             isDownloaded -> 0.85f
