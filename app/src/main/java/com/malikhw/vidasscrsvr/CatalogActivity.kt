@@ -220,7 +220,7 @@ class CatalogActivity : AppCompatActivity() {
                 val conn = URL(video.videoUrl).openConnection() as HttpURLConnection
                 conn.connectTimeout = 10000
                 conn.readTimeout = 30000
-                val total = conn.contentLengthLong
+                val total = conn.getHeaderField("Content-Length")?.toLongOrNull() ?: conn.contentLength.toLong()
                 val input = conn.inputStream
                 val out = FileOutputStream(destFile)
                 val buf = ByteArray(8192)

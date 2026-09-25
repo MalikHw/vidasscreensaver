@@ -7,6 +7,8 @@ import android.provider.OpenableColumns
 import android.provider.Settings
 import android.view.View
 import android.view.animation.AnimationUtils
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -17,6 +19,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
     private val prefs by lazy { getSharedPreferences("vid_scrsvr_prefs", MODE_PRIVATE) }
+    private val orientationOptions = arrayOf("Portrait", "Landscape", "Landscape reversed", "Portrait reversed")
 
     private val videoPicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@registerForActivityResult
@@ -42,6 +45,9 @@ class SettingsActivity : AppCompatActivity() {
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, orientationOptions)
+        binding.spinnerOrientation.setAdapter(adapter)
+
         loadSavedStuff()
         setupListeners()
         runEntryAnimations()
@@ -61,6 +67,7 @@ class SettingsActivity : AppCompatActivity() {
             binding.groupVideoCard,
             binding.groupPlaybackCard,
             binding.groupScaleCard,
+            binding.groupOrientationCard,
             binding.groupButtons
         )
         groups.forEachIndexed { i, view ->
@@ -95,6 +102,16 @@ class SettingsActivity : AppCompatActivity() {
             "adapt" -> binding.rbAdapt.isChecked = true
             else -> binding.rbZoom.isChecked = true
         }
+
+        val orientationVal = prefs.getString("orientation", "landscape") ?: "landscape"
+        val orientationText = when (orientationVal) {
+            "portrait" -> "Portrait"
+            "landscape" -> "Landscape"
+            "landscape_reversed" -> "Landscape reversed"
+            "portrait_reversed" -> "Portrait reversed"
+            else -> "Landscape"
+        }
+        binding.spinnerOrientation.setText(orientationText, false)
     }
 
     private fun setupListeners() {
@@ -154,11 +171,20 @@ class SettingsActivity : AppCompatActivity() {
             R.id.rbAdapt -> "adapt"
             else -> "zoom"
         }
+        val orientationText = binding.spinnerOrientation.text.toString()
+        val orientationVal = when (orientationText) {
+            "Portrait" -> "portrait"
+            "Landscape" -> "landscape"
+            "Landscape reversed" -> "landscape_reversed"
+            "Portrait reversed" -> "portrait_reversed"
+            else -> "landscape"
+        }
         prefs.edit().apply {
             putBoolean("sound_on", binding.cbSound.isChecked)
             putFloat("volume", binding.seekVolume.progress / 100f)
             putBoolean("loop", binding.cbLoop.isChecked)
             putString("scale_mode", scaleMode)
+            putString("orientation", orientationVal)
             apply()
         }
     }

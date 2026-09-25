@@ -1,5 +1,6 @@
 package com.malikhw.vidasscrsvr
 
+import android.content.pm.ActivityInfo
 import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.net.Uri
@@ -26,6 +27,21 @@ class VideoDreamService : DreamService() {
         isInteractive = false
 
         val prefs = getSharedPreferences("vid_scrsvr_prefs", MODE_PRIVATE)
+        val orientationString = prefs.getString("orientation", "landscape") ?: "landscape"
+        val targetOrientation = when (orientationString) {
+            "portrait" -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            "landscape" -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            "landscape_reversed" -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
+            "portrait_reversed" -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT
+            else -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        }
+
+        window?.let { w ->
+            val lp = w.attributes
+            lp.screenOrientation = targetOrientation
+            w.attributes = lp
+        }
+
         val uriString = prefs.getString("video_uri", null) ?: run { finish(); return }
         val soundOn = prefs.getBoolean("sound_on", false)
         val volume = prefs.getFloat("volume", 0.5f)
@@ -60,13 +76,16 @@ class VideoDreamService : DreamService() {
                     p.prepare()
                     p.play()
                 }
+
                 override fun onSurfaceTextureSizeChanged(st: SurfaceTexture, w: Int, h: Int) {
                     applyScale()
                 }
+
                 override fun onSurfaceTextureDestroyed(st: SurfaceTexture): Boolean {
                     p.setVideoSurface(null)
                     return true
                 }
+
                 override fun onSurfaceTextureUpdated(st: SurfaceTexture) {}
             }
         }
@@ -91,10 +110,12 @@ class VideoDreamService : DreamService() {
                 matrix.setScale(scaledW / sw, scaledH / sh)
                 matrix.postTranslate((sw - scaledW) / 2f, (sh - scaledH) / 2f)
             }
+
             "stretch" -> {
                 // just fill the whole surface, ratio be damned
                 matrix.setScale(1f, 1f)
             }
+
             "zoom" -> {
                 // scale uniformly so video covers entire screen, crop the overflow
                 val scale = maxOf(sw / vw, sh / vh)
@@ -103,6 +124,7 @@ class VideoDreamService : DreamService() {
                 matrix.setScale(scaledW / sw, scaledH / sh)
                 matrix.postTranslate((sw - scaledW) / 2f, (sh - scaledH) / 2f)
             }
+
             "adapt" -> {
                 // same as fit — intentional black bars, nothing cropped, nothing stretched
                 val scale = minOf(sw / vw, sh / vh)

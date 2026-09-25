@@ -22,7 +22,7 @@ object AboutDialog {
         "GitHub" to "https://github.com/MalikHw",
         "Twitch" to "https://twitch.tv/MalikHw47",
         "Discord" to "https://discord.gg/G9bZ92eg2n",
-        "Throne" to "https://throne.com/MalikHw47",
+        "Get me a Gift" to "https://throne.com/MalikHw47",
         "Ko-fi" to "https://ko-fi.com/MalikHw47"
     )
 
