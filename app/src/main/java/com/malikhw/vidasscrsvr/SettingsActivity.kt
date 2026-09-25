@@ -47,6 +47,17 @@ class SettingsActivity : AppCompatActivity() {
 
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, orientationOptions)
         binding.spinnerOrientation.setAdapter(adapter)
+        binding.spinnerOrientation.setOnItemClickListener { _, _, position, _ ->
+            val selectedOption = orientationOptions.getOrNull(position) ?: "Portrait"
+            val orientationVal = when (selectedOption) {
+                "Portrait" -> "portrait"
+                "Landscape" -> "landscape"
+                "Landscape reversed" -> "landscape_reversed"
+                "Portrait reversed" -> "portrait_reversed"
+                else -> "landscape"
+            }
+            prefs.edit().putString("orientation", orientationVal).apply()
+        }
 
         loadSavedStuff()
         setupListeners()

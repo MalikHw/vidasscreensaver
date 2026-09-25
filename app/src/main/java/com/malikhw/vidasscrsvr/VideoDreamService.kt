@@ -55,6 +55,18 @@ class VideoDreamService : DreamService() {
         textureView = tv
         setContentView(tv)
 
+        window?.let { w ->
+            w.decorView.post {
+                try {
+                    val lp = w.attributes
+                    lp.screenOrientation = targetOrientation
+                    w.attributes = lp
+                    w.windowManager?.updateViewLayout(w.decorView, lp)
+                } catch (_: Exception) {
+                }
+            }
+        }
+
         val uri = Uri.parse(uriString)
 
         player = ExoPlayer.Builder(this).build().also { p ->
@@ -96,8 +108,8 @@ class VideoDreamService : DreamService() {
         val vw = videoWidth.takeIf { it > 0 } ?: return
         val vh = videoHeight.takeIf { it > 0 } ?: return
 
-        val sw = resources.displayMetrics.widthPixels.toFloat()
-        val sh = resources.displayMetrics.heightPixels.toFloat()
+        val sw = tv.width.toFloat().takeIf { it > 0 } ?: resources.displayMetrics.widthPixels.toFloat()
+        val sh = tv.height.toFloat().takeIf { it > 0 } ?: resources.displayMetrics.heightPixels.toFloat()
 
         val matrix = Matrix()
 
