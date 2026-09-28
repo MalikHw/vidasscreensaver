@@ -19,14 +19,21 @@ class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
     private val prefs by lazy { getSharedPreferences("vid_scrsvr_prefs", MODE_PRIVATE) }
-    private val orientationOptions = arrayOf("Portrait", "Landscape", "Landscape reversed", "Portrait reversed")
+    private val orientationOptions by lazy {
+        arrayOf(
+            getString(R.string.orientation_portrait),
+            getString(R.string.orientation_landscape),
+            getString(R.string.orientation_landscape_reversed),
+            getString(R.string.orientation_portrait_reversed)
+        )
+    }
 
     private val videoPicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@registerForActivityResult
         contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
         prefs.edit().putString("video_uri", uri.toString()).apply()
         val name = getVideoDisplayName(uri)
-        binding.tvSelectedFile.text = "selected $name"
+        binding.tvSelectedFile.text = getString(R.string.selected_prefix, name)
     }
 
     private val catalogLauncher =
@@ -35,7 +42,7 @@ class SettingsActivity : AppCompatActivity() {
                 val uriString = prefs.getString("video_uri", null) ?: return@registerForActivityResult
                 val uri = Uri.parse(uriString)
                 val name = getVideoDisplayName(uri)
-                binding.tvSelectedFile.text = "selected $name"
+                binding.tvSelectedFile.text = getString(R.string.selected_prefix, name)
             }
         }
 
@@ -50,10 +57,10 @@ class SettingsActivity : AppCompatActivity() {
         binding.spinnerOrientation.setOnItemClickListener { _, _, position, _ ->
             val selectedOption = orientationOptions.getOrNull(position) ?: "Portrait"
             val orientationVal = when (selectedOption) {
-                "Portrait" -> "portrait"
-                "Landscape" -> "landscape"
-                "Landscape reversed" -> "landscape_reversed"
-                "Portrait reversed" -> "portrait_reversed"
+                getString(R.string.orientation_portrait) -> "portrait"
+                getString(R.string.orientation_landscape) -> "landscape"
+                getString(R.string.orientation_landscape_reversed) -> "landscape_reversed"
+                getString(R.string.orientation_portrait_reversed) -> "portrait_reversed"
                 else -> "landscape"
             }
             prefs.edit().putString("orientation", orientationVal).apply()
@@ -95,7 +102,7 @@ class SettingsActivity : AppCompatActivity() {
         val uriString = prefs.getString("video_uri", null)
         binding.tvSelectedFile.text = if (uriString != null) {
             val name = getVideoDisplayName(Uri.parse(uriString))
-            "selected $name"
+            getString(R.string.selected_prefix, name)
         } else {
             getString(R.string.no_video_selected)
         }
@@ -116,11 +123,11 @@ class SettingsActivity : AppCompatActivity() {
 
         val orientationVal = prefs.getString("orientation", "landscape") ?: "landscape"
         val orientationText = when (orientationVal) {
-            "portrait" -> "Portrait"
-            "landscape" -> "Landscape"
-            "landscape_reversed" -> "Landscape reversed"
-            "portrait_reversed" -> "Portrait reversed"
-            else -> "Landscape"
+            "portrait" -> getString(R.string.orientation_portrait)
+            "landscape" -> getString(R.string.orientation_landscape)
+            "landscape_reversed" -> getString(R.string.orientation_landscape_reversed)
+            "portrait_reversed" -> getString(R.string.orientation_portrait_reversed)
+            else -> getString(R.string.orientation_landscape)
         }
         binding.spinnerOrientation.setText(orientationText, false)
     }
@@ -140,7 +147,7 @@ class SettingsActivity : AppCompatActivity() {
 
         binding.btnSave.setOnClickListener {
             saveSettings()
-            Toast.makeText(this, "Saved!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_saved), Toast.LENGTH_SHORT).show()
         }
 
         binding.btnSystemSettings.setOnClickListener {
@@ -154,7 +161,7 @@ class SettingsActivity : AppCompatActivity() {
                 } catch (e2: Exception) {
                     Toast.makeText(
                         this,
-                        "Your phone really doesn't want you to find this setting huh",
+                        getString(R.string.toast_no_daydream_settings),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -184,10 +191,10 @@ class SettingsActivity : AppCompatActivity() {
         }
         val orientationText = binding.spinnerOrientation.text.toString()
         val orientationVal = when (orientationText) {
-            "Portrait" -> "portrait"
-            "Landscape" -> "landscape"
-            "Landscape reversed" -> "landscape_reversed"
-            "Portrait reversed" -> "portrait_reversed"
+            getString(R.string.orientation_portrait) -> "portrait"
+            getString(R.string.orientation_landscape) -> "landscape"
+            getString(R.string.orientation_landscape_reversed) -> "landscape_reversed"
+            getString(R.string.orientation_portrait_reversed) -> "portrait_reversed"
             else -> "landscape"
         }
         prefs.edit().apply {

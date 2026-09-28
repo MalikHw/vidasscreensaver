@@ -107,7 +107,7 @@ class CatalogActivity : AppCompatActivity() {
                     progressBar.visibility = View.GONE
                     if (videos.isEmpty()) {
                         tvError.visibility = View.VISIBLE
-                        tvError.text = "Catalog is empty. Be the first to submit!"
+                        tvError.text = getString(R.string.catalog_empty)
                     } else {
                         showCatalog(recycler, videos)
                     }
@@ -144,10 +144,10 @@ class CatalogActivity : AppCompatActivity() {
                         progressBar.visibility = View.GONE
                         if (offlineVideos.isEmpty()) {
                             tvError.visibility = View.VISIBLE
-                            tvError.text = "Couldn't load catalog. Check your connection."
+                            tvError.text = getString(R.string.catalog_load_error)
                         } else {
                             tvError.visibility = View.VISIBLE
-                            tvError.text = "Offline — showing downloaded videos only"
+                            tvError.text = getString(R.string.catalog_offline)
                             showCatalog(recycler, offlineVideos)
                         }
                     }
@@ -155,7 +155,7 @@ class CatalogActivity : AppCompatActivity() {
                     mainHandler.post {
                         progressBar.visibility = View.GONE
                         tvError.visibility = View.VISIBLE
-                        tvError.text = "Couldn't load catalog. Check your connection."
+                        tvError.text = getString(R.string.catalog_load_error)
                     }
                 }
             }
@@ -180,12 +180,12 @@ class CatalogActivity : AppCompatActivity() {
         when {
             localFile != null && localFile.exists() &&
                     Uri.fromFile(localFile).toString() == appliedUri -> {
-                Toast.makeText(this, "${video.name} is already in use!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.catalog_already_in_use, video.name), Toast.LENGTH_SHORT).show()
             }
 
             localFile != null && localFile.exists() -> {
                 applyLocalFile(localFile)
-                Toast.makeText(this, "${video.name} applied!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.catalog_applied, video.name), Toast.LENGTH_SHORT).show()
                 val recycler = findViewById<RecyclerView>(R.id.rvCatalog)
                 (recycler.adapter as? CatalogAdapter)?.updateState(
                     newDownloadedMap = getDownloadedMap(),
@@ -204,7 +204,7 @@ class CatalogActivity : AppCompatActivity() {
         val progress = dialogView.findViewById<LinearProgressIndicator>(R.id.downloadProgress)
         val tvPercent = dialogView.findViewById<TextView>(R.id.tvPercent)
 
-        tvTitle.text = "Downloading ${video.name}…"
+        tvTitle.text = getString(R.string.downloading_title, video.name)
         progress.isIndeterminate = false
 
         val dialog = AlertDialog.Builder(this)
@@ -269,7 +269,7 @@ class CatalogActivity : AppCompatActivity() {
                 applyLocalFile(destFile)
                 mainHandler.post {
                     dialog.dismiss()
-                    Toast.makeText(this, "${video.name} applied!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.catalog_applied, video.name), Toast.LENGTH_SHORT).show()
                     val recycler = findViewById<RecyclerView>(R.id.rvCatalog)
                     (recycler.adapter as? CatalogAdapter)?.updateState(
                         newDownloadedMap = getDownloadedMap(),
@@ -281,7 +281,7 @@ class CatalogActivity : AppCompatActivity() {
                 destFile.delete()
                 mainHandler.post {
                     dialog.dismiss()
-                    Toast.makeText(this, "Download failed: ${e.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, getString(R.string.download_failed, e.message), Toast.LENGTH_LONG).show()
                 }
             }
         }

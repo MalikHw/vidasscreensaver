@@ -39,7 +39,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="By MalikHw47"
+                    android:text="@string/by_author"
                     android:textSize="12sp"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
@@ -51,7 +51,7 @@
                 android:layout_height="44dp"
                 android:padding="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="About"
+                android:contentDescription="@string/btn_info_content_desc"
                 android:focusable="true"
                 app:srcCompat="@drawable/ic_info_24"
                 app:tint="?attr/colorPrimary" />
@@ -76,7 +76,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Selected Video:"
+                    android:text="@string/selected_video_label"
                     android:textSize="12sp"
                     android:textAllCaps="true"
                     android:letterSpacing="0.1"
@@ -103,7 +103,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Choose Video"
+                        android:text="@string/btn_choose_video"
                         android:layout_marginEnd="8dp" />
 
                     <com.google.android.material.button.MaterialButton
@@ -111,7 +111,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Browse Catalog"
+                        android:text="@string/btn_browse_catalog"
                         style="@style/Widget.Material3.Button.TonalButton" />
 
                 </LinearLayout>
@@ -137,7 +137,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Playback"
+                    android:text="@string/section_playback"
                     android:textSize="12sp"
                     android:textAllCaps="true"
                     android:letterSpacing="0.1"
@@ -148,14 +148,14 @@
                     android:id="@+id/cbLoop"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Loop video"
+                    android:text="@string/cb_loop"
                     android:checked="true" />
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/cbSound"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Play sound"
+                    android:text="@string/cb_sound"
                     android:layout_marginTop="4dp" />
 
                 <LinearLayout
@@ -170,7 +170,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Volume"
+                        android:text="@string/label_volume"
                         android:textSize="14sp"
                         android:layout_marginEnd="12dp" />
 
@@ -205,7 +205,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Scale"
+                    android:text="@string/section_scale"
                     android:textSize="12sp"
                     android:textAllCaps="true"
                     android:letterSpacing="0.1"
@@ -222,20 +222,20 @@
                         android:id="@+id/rbFit"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Fit — full video visible, letterboxed" />
+                        android:text="@string/rb_fit" />
 
                     <com.google.android.material.radiobutton.MaterialRadioButton
                         android:id="@+id/rbStretch"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Stretch — fills screen, squishes if needed"
+                        android:text="@string/rb_stretch"
                         android:layout_marginTop="4dp" />
 
                     <com.google.android.material.radiobutton.MaterialRadioButton
                         android:id="@+id/rbZoom"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Zoom — fills screen, crops edges"
+                        android:text="@string/rb_zoom"
                         android:checked="true"
                         android:layout_marginTop="4dp" />
 
@@ -243,7 +243,7 @@
                         android:id="@+id/rbAdapt"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Adapt — fit + black bars (good for 9:16 on wide screens)"
+                        android:text="@string/rb_adapt"
                         android:layout_marginTop="4dp" />
 
                 </RadioGroup>
@@ -269,7 +269,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Orientation"
+                    android:text="@string/section_orientation"
                     android:textSize="12sp"
                     android:textAllCaps="true"
                     android:letterSpacing="0.1"
@@ -306,14 +306,14 @@
                 android:id="@+id/btnSave"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="SAVE"
+                android:text="@string/btn_save"
                 android:layout_marginBottom="8dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSystemSettings"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Open System Daydream Settings"
+                android:text="@string/btn_system_settings"
                 style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_marginBottom="32dp" />
 
@@ -328,7 +328,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Donate"
+                    android:text="@string/btn_donate"
                     style="@style/Widget.Material3.Button.TonalButton"
                     android:layout_marginEnd="6dp" />
 
@@ -337,7 +337,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Source"
+                    android:text="@string/btn_source"
                     style="@style/Widget.Material3.Button.OutlinedButton" />
 
             </LinearLayout>
@@ -347,7 +347,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:gravity="center"
-                android:text="made this cuz i couldn\'t find it on the play store\nalso i was bored"
+                android:text="@string/footer_tagline"
                 android:textSize="11sp"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:alpha="0.55"

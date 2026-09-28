@@ -1,5 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- App -->
     <string name="app_name">Video Screensaver</string>
+    <string name="by_author">By MalikHw47</string>
+    <string name="footer_tagline">made this cuz i couldn\'t find it on the play store\nalso i was bored</string>
+
+    <!-- Video card -->
+    <string name="selected_video_label">Selected Video:</string>
     <string name="no_video_selected">No video selected</string>
+    <string name="selected_prefix">selected %1$s</string>
+    <string name="btn_choose_video">Choose Video</string>
+    <string name="btn_browse_catalog">Browse Catalog</string>
+
+    <!-- Playback card -->
+    <string name="section_playback">Playback</string>
+    <string name="cb_loop">Loop video</string>
+    <string name="cb_sound">Play sound</string>
+    <string name="label_volume">Volume</string>
+
+    <!-- Scale card -->
+    <string name="section_scale">Scale</string>
+    <string name="rb_fit">Fit — full video visible, letterboxed</string>
+    <string name="rb_stretch">Stretch — fills screen, squishes if needed</string>
+    <string name="rb_zoom">Zoom — fills screen, crops edges</string>
+    <string name="rb_adapt">Adapt — fit + black bars (good for 9:16 on wide screens)</string>
+
+    <!-- Orientation card -->
+    <string name="section_orientation">Orientation</string>
+    <string name="orientation_portrait">Portrait</string>
+    <string name="orientation_landscape">Landscape</string>
+    <string name="orientation_landscape_reversed">Landscape reversed</string>
+    <string name="orientation_portrait_reversed">Portrait reversed</string>
+
+    <!-- Buttons -->
+    <string name="btn_save">SAVE</string>
+    <string name="btn_system_settings">Open System Daydream Settings</string>
+    <string name="btn_donate">Donate</string>
+    <string name="btn_source">Source</string>
+    <string name="btn_info_content_desc">About</string>
+    <string name="toast_saved">Saved!</string>
+    <string name="toast_no_daydream_settings">Your phone really doesn\'t want you to find this setting huh</string>
+
+    <!-- Catalog -->
+    <string name="catalog_title">Video Catalog</string>
+    <string name="btn_submit_video">Submit a video</string>
+    <string name="catalog_empty">Catalog is empty. Be the first to submit!</string>
+    <string name="catalog_load_error">Couldn\'t load catalog. Check your connection.</string>
+    <string name="catalog_offline">Offline — showing downloaded videos only</string>
+    <string name="catalog_already_in_use">%1$s is already in use!</string>
+    <string name="catalog_applied">%1$s applied!</string>
+    <string name="download_failed">Download failed: %1$s</string>
+    <string name="downloading_title">Downloading %1$s\u2026</string>
+
+    <!-- About dialog -->
+    <string name="about_pfp_desc">MalikHw47</string>
+    <string name="about_bio">By MalikHw47, a geometry dash player/level creator, a Geode modder, and a developer</string>
+    <string name="btn_close">Close</string>
+
+    <!-- Donate dialog -->
+    <string name="donate_support_title">Support the developer</string>
+    <string name="donate_info_content_desc">Info</string>
+    <string name="donate_heart_content_desc">Heart</string>
+    <string name="donate_maybe_later">Maybe later</string>
+    <string name="donate_how_much">How much?</string>
+    <string name="donate_waiting_payment">Waiting for payment\u2026</string>
+    <string name="donate_loading_tiers">Loading tiers\u2026</string>
+    <string name="donate_info_message">This app is published under my friend\'s google account since i can\'t afford $25, by your support of donating i can reach it and make this app listed under my Play Console! + helping the development of this + other things i make :)</string>
+    <string name="donate_success_toast">W Bro!</string>
+    <string name="btn_ok">OK</string>
 </resources>

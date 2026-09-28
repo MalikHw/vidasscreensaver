@@ -27,7 +27,7 @@
                 android:layout_height="40dp"
                 android:padding="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Info"
+                android:contentDescription="@string/donate_info_content_desc"
                 android:focusable="true"
                 app:srcCompat="@drawable/ic_info_24"
                 app:tint="?attr/colorOnSurfaceVariant" />
@@ -37,7 +37,7 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:layout_marginTop="4dp"
-            android:contentDescription="Heart"
+            android:contentDescription="@string/donate_heart_content_desc"
             app:srcCompat="@drawable/ic_favorite_24"
             app:tint="#FF6B35" />
 
@@ -45,7 +45,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Support the developer"
+            android:text="@string/donate_support_title"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -65,7 +65,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_gravity="end"
-            android:text="Maybe later"
+            android:text="@string/donate_maybe_later"
             android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="12sp" />
 

@@ -38,7 +38,7 @@ object DonateDialog {
 
         val helper = DonateHelper(activity, onPurchaseSuccess = {
             dialog.dismiss()
-            Toast.makeText(activity, "W Bro!", Toast.LENGTH_LONG).show()
+            Toast.makeText(activity, activity.getString(R.string.donate_success_toast), Toast.LENGTH_LONG).show()
         })
 
         fun render() {
@@ -56,12 +56,13 @@ object DonateDialog {
                         )
                     })
                     contentContainer.addView(TextView(activity).apply {
-                        text = "Waiting for payment\u2026"
+                        text = activity.getString(R.string.donate_waiting_payment)
                         setTextColor(Color.GRAY)
                         textSize = 12f
                         setPadding(0, 16, 0, 0)
                     })
                 }
+
                 state is DonateHelper.State.Error -> {
                     contentContainer.addView(TextView(activity).apply {
                         text = state.message
@@ -70,18 +71,20 @@ object DonateDialog {
                         gravity = android.view.Gravity.CENTER
                     })
                 }
+
                 products.isEmpty() -> {
                     contentContainer.addView(ProgressBar(activity))
                     contentContainer.addView(TextView(activity).apply {
-                        text = "Loading tiers\u2026"
+                        text = activity.getString(R.string.donate_loading_tiers)
                         setTextColor(Color.GRAY)
                         textSize = 12f
                         setPadding(0, 16, 0, 0)
                     })
                 }
+
                 else -> {
                     contentContainer.addView(TextView(activity).apply {
-                        text = "How much?"
+                        text = activity.getString(R.string.donate_how_much)
                         setTextColor(Color.GRAY)
                         textSize = 14f
                         setPadding(0, 0, 0, 12)
@@ -90,7 +93,8 @@ object DonateDialog {
                         val name = product.name
                         val price = product.oneTimePurchaseOfferDetails?.formattedPrice ?: "\u2014"
 
-                        val tierBtn = inflater.inflate(R.layout.item_donate_tier, contentContainer, false) as MaterialButton
+                        val tierBtn =
+                            inflater.inflate(R.layout.item_donate_tier, contentContainer, false) as MaterialButton
                         tierBtn.text = "$name        $price"
                         tierBtn.setOnClickListener {
                             purchasing = true
@@ -113,12 +117,8 @@ object DonateDialog {
 
         btnInfo.setOnClickListener {
             AlertDialog.Builder(activity)
-                .setMessage(
-                    "This app is published under my friend's google account since i can't afford \$25, " +
-                        "by your support of donating i can reach it and make this app listed under my Play Console! " +
-                        "+ helping the development of this + other things i make :)"
-                )
-                .setPositiveButton("OK", null)
+                .setMessage(activity.getString(R.string.donate_info_message))
+                .setPositiveButton(activity.getString(R.string.btn_ok), null)
                 .show()
         }
 

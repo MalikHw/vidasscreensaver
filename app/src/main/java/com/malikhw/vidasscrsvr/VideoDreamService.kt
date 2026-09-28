@@ -1,6 +1,5 @@
 package com.malikhw.vidasscrsvr
 
-import android.content.pm.ActivityInfo
 import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.net.Uri
@@ -20,6 +19,7 @@ class VideoDreamService : DreamService() {
     private var videoHeight = 0
     private var scaleMode = "zoom"
     private var textureView: TextureView? = null
+    private var orientationString = "landscape"
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
@@ -27,20 +27,7 @@ class VideoDreamService : DreamService() {
         isInteractive = false
 
         val prefs = getSharedPreferences("vid_scrsvr_prefs", MODE_PRIVATE)
-        val orientationString = prefs.getString("orientation", "landscape") ?: "landscape"
-        val targetOrientation = when (orientationString) {
-            "portrait" -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-            "landscape" -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-            "landscape_reversed" -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
-            "portrait_reversed" -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT
-            else -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-        }
-
-        window?.let { w ->
-            val lp = w.attributes
-            lp.screenOrientation = targetOrientation
-            w.attributes = lp
-        }
+        orientationString = prefs.getString("orientation", "landscape") ?: "landscape"
 
         val uriString = prefs.getString("video_uri", null) ?: run { finish(); return }
         val soundOn = prefs.getBoolean("sound_on", false)
@@ -55,17 +42,7 @@ class VideoDreamService : DreamService() {
         textureView = tv
         setContentView(tv)
 
-        window?.let { w ->
-            w.decorView.post {
-                try {
-                    val lp = w.attributes
-                    lp.screenOrientation = targetOrientation
-                    w.attributes = lp
-                    w.windowManager?.updateViewLayout(w.decorView, lp)
-                } catch (_: Exception) {
-                }
-            }
-        }
+        tv.post { applyOrientationRotation() }
 
         val uri = Uri.parse(uriString)
 
@@ -90,6 +67,7 @@ class VideoDreamService : DreamService() {
                 }
 
                 override fun onSurfaceTextureSizeChanged(st: SurfaceTexture, w: Int, h: Int) {
+                    applyOrientationRotation()
                     applyScale()
                 }
 
@@ -101,6 +79,25 @@ class VideoDreamService : DreamService() {
                 override fun onSurfaceTextureUpdated(st: SurfaceTexture) {}
             }
         }
+    }
+
+    private fun applyOrientationRotation() {
+        val tv = textureView ?: return
+        val sw = tv.width.toFloat().takeIf { it > 0 } ?: return
+        val sh = tv.height.toFloat().takeIf { it > 0 } ?: return
+
+        val (rotation, scaleX, scaleY) = when (orientationString) {
+            "landscape" -> Triple(0f, 1f, 1f)
+            "landscape_reversed" -> Triple(180f, 1f, 1f)
+            "portrait" -> Triple(90f, sh / sw, sw / sh)
+            "portrait_reversed" -> Triple(-90f, sh / sw, sw / sh)
+            "portrait_reversed" -> Triple(-90f, sh / sw, sw / sh)
+            else -> Triple(0f, 1f, 1f)
+        }
+
+        tv.rotation = rotation
+        tv.scaleX = scaleX
+        tv.scaleY = scaleY
     }
 
     private fun applyScale() {

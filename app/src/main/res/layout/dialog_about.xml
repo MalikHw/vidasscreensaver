@@ -19,7 +19,7 @@
             android:layout_width="92dp"
             android:layout_height="92dp"
             android:scaleType="centerCrop"
-            android:contentDescription="MalikHw47"
+            android:contentDescription="@string/about_pfp_desc"
             android:src="@drawable/pfp" />
 
         <TextView
@@ -27,7 +27,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:gravity="center"
-            android:text="By MalikHw47, a geometry dash player/level creator, a Geode modder, and a developer"
+            android:text="@string/about_bio"
             android:textSize="14sp" />
 
         <LinearLayout
@@ -44,7 +44,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:layout_gravity="end"
-            android:text="Close"
+            android:text="@string/btn_close"
             android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="12sp" />
 
