@@ -68,7 +68,6 @@ class VideoDreamService : DreamService() {
 
                 override fun onSurfaceTextureSizeChanged(st: SurfaceTexture, w: Int, h: Int) {
                     applyOrientationRotation()
-                    applyScale()
                 }
 
                 override fun onSurfaceTextureDestroyed(st: SurfaceTexture): Boolean {
@@ -87,17 +86,18 @@ class VideoDreamService : DreamService() {
         val sh = tv.height.toFloat().takeIf { it > 0 } ?: return
 
         val (rotation, scaleX, scaleY) = when (orientationString) {
-            "landscape" -> Triple(0f, 1f, 1f)
-            "landscape_reversed" -> Triple(180f, 1f, 1f)
-            "portrait" -> Triple(90f, sh / sw, sw / sh)
-            "portrait_reversed" -> Triple(-90f, sh / sw, sw / sh)
-            "portrait_reversed" -> Triple(-90f, sh / sw, sw / sh)
+            "portrait" -> Triple(0f, 1f, 1f)
+            "portrait_reversed" -> Triple(180f, 1f, 1f)
+            "landscape" -> Triple(90f, sh / sw, sw / sh)
+            "landscape_reversed" -> Triple(-90f, sh / sw, sw / sh)
             else -> Triple(0f, 1f, 1f)
         }
 
         tv.rotation = rotation
         tv.scaleX = scaleX
         tv.scaleY = scaleY
+
+        applyScale()
     }
 
     private fun applyScale() {
@@ -105,8 +105,12 @@ class VideoDreamService : DreamService() {
         val vw = videoWidth.takeIf { it > 0 } ?: return
         val vh = videoHeight.takeIf { it > 0 } ?: return
 
-        val sw = tv.width.toFloat().takeIf { it > 0 } ?: resources.displayMetrics.widthPixels.toFloat()
-        val sh = tv.height.toFloat().takeIf { it > 0 } ?: resources.displayMetrics.heightPixels.toFloat()
+        val rawW = tv.width.toFloat().takeIf { it > 0 } ?: resources.displayMetrics.widthPixels.toFloat()
+        val rawH = tv.height.toFloat().takeIf { it > 0 } ?: resources.displayMetrics.heightPixels.toFloat()
+
+        val isRotated90 = orientationString == "landscape" || orientationString == "landscape_reversed"
+        val sw = if (isRotated90) rawH else rawW
+        val sh = if (isRotated90) rawW else rawH
 
         val matrix = Matrix()
 
@@ -116,22 +120,20 @@ class VideoDreamService : DreamService() {
                 val scale = minOf(sw / vw, sh / vh)
                 val scaledW = vw * scale
                 val scaledH = vh * scale
-                matrix.setScale(scaledW / sw, scaledH / sh)
-                matrix.postTranslate((sw - scaledW) / 2f, (sh - scaledH) / 2f)
+                matrix.setScale(scaledW / rawW, scaledH / rawH)
+                matrix.postTranslate((rawW - scaledW) / 2f, (rawH - scaledH) / 2f)
             }
 
             "stretch" -> {
-                // just fill the whole surface, ratio be damned
                 matrix.setScale(1f, 1f)
             }
 
             "zoom" -> {
-                // scale uniformly so video covers entire screen, crop the overflow
                 val scale = maxOf(sw / vw, sh / vh)
                 val scaledW = vw * scale
                 val scaledH = vh * scale
-                matrix.setScale(scaledW / sw, scaledH / sh)
-                matrix.postTranslate((sw - scaledW) / 2f, (sh - scaledH) / 2f)
+                matrix.setScale(scaledW / rawW, scaledH / rawH)
+                matrix.postTranslate((rawW - scaledW) / 2f, (rawH - scaledH) / 2f)
             }
 
             "adapt" -> {
@@ -139,8 +141,8 @@ class VideoDreamService : DreamService() {
                 val scale = minOf(sw / vw, sh / vh)
                 val scaledW = vw * scale
                 val scaledH = vh * scale
-                matrix.setScale(scaledW / sw, scaledH / sh)
-                matrix.postTranslate((sw - scaledW) / 2f, (sh - scaledH) / 2f)
+                matrix.setScale(scaledW / rawW, scaledH / rawH)
+                matrix.postTranslate((rawW - scaledW) / 2f, (rawH - scaledH) / 2f)
             }
         }
 
