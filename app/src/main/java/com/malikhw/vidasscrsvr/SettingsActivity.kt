@@ -7,8 +7,6 @@ import android.provider.OpenableColumns
 import android.provider.Settings
 import android.view.View
 import android.view.animation.AnimationUtils
-import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -19,14 +17,6 @@ class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
     private val prefs by lazy { getSharedPreferences("vid_scrsvr_prefs", MODE_PRIVATE) }
-    private val orientationOptions by lazy {
-        arrayOf(
-            getString(R.string.orientation_portrait),
-            getString(R.string.orientation_landscape),
-            getString(R.string.orientation_landscape_reversed),
-            getString(R.string.orientation_portrait_reversed)
-        )
-    }
 
     private val videoPicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@registerForActivityResult
@@ -52,20 +42,6 @@ class SettingsActivity : AppCompatActivity() {
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, orientationOptions)
-        binding.spinnerOrientation.setAdapter(adapter)
-        binding.spinnerOrientation.setOnItemClickListener { _, _, position, _ ->
-            val selectedOption = orientationOptions.getOrNull(position) ?: "Portrait"
-            val orientationVal = when (selectedOption) {
-                getString(R.string.orientation_portrait) -> "portrait"
-                getString(R.string.orientation_landscape) -> "landscape"
-                getString(R.string.orientation_landscape_reversed) -> "landscape_reversed"
-                getString(R.string.orientation_portrait_reversed) -> "portrait_reversed"
-                else -> "landscape"
-            }
-            prefs.edit().putString("orientation", orientationVal).apply()
-        }
-
         loadSavedStuff()
         setupListeners()
         runEntryAnimations()
@@ -85,7 +61,6 @@ class SettingsActivity : AppCompatActivity() {
             binding.groupVideoCard,
             binding.groupPlaybackCard,
             binding.groupScaleCard,
-            binding.groupOrientationCard,
             binding.groupButtons
         )
         groups.forEachIndexed { i, view ->
@@ -120,16 +95,6 @@ class SettingsActivity : AppCompatActivity() {
             "adapt" -> binding.rbAdapt.isChecked = true
             else -> binding.rbZoom.isChecked = true
         }
-
-        val orientationVal = prefs.getString("orientation", "landscape") ?: "landscape"
-        val orientationText = when (orientationVal) {
-            "portrait" -> getString(R.string.orientation_portrait)
-            "landscape" -> getString(R.string.orientation_landscape)
-            "landscape_reversed" -> getString(R.string.orientation_landscape_reversed)
-            "portrait_reversed" -> getString(R.string.orientation_portrait_reversed)
-            else -> getString(R.string.orientation_landscape)
-        }
-        binding.spinnerOrientation.setText(orientationText, false)
     }
 
     private fun setupListeners() {
@@ -189,20 +154,11 @@ class SettingsActivity : AppCompatActivity() {
             R.id.rbAdapt -> "adapt"
             else -> "zoom"
         }
-        val orientationText = binding.spinnerOrientation.text.toString()
-        val orientationVal = when (orientationText) {
-            getString(R.string.orientation_portrait) -> "portrait"
-            getString(R.string.orientation_landscape) -> "landscape"
-            getString(R.string.orientation_landscape_reversed) -> "landscape_reversed"
-            getString(R.string.orientation_portrait_reversed) -> "portrait_reversed"
-            else -> "landscape"
-        }
         prefs.edit().apply {
             putBoolean("sound_on", binding.cbSound.isChecked)
             putFloat("volume", binding.seekVolume.progress / 100f)
             putBoolean("loop", binding.cbLoop.isChecked)
             putString("scale_mode", scaleMode)
-            putString("orientation", orientationVal)
             apply()
         }
     }

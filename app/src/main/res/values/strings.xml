@@ -25,13 +25,6 @@
     <string name="rb_zoom">Zoom — fills screen, crops edges</string>
     <string name="rb_adapt">Adapt — fit + black bars (good for 9:16 on wide screens)</string>
 
-    <!-- Orientation card -->
-    <string name="section_orientation">Orientation</string>
-    <string name="orientation_portrait">Portrait</string>
-    <string name="orientation_landscape">Landscape</string>
-    <string name="orientation_landscape_reversed">Landscape reversed</string>
-    <string name="orientation_portrait_reversed">Portrait reversed</string>
-
     <!-- Buttons -->
     <string name="btn_save">SAVE</string>
     <string name="btn_system_settings">Open System Daydream Settings</string>

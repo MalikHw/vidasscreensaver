@@ -19,7 +19,6 @@ class VideoDreamService : DreamService() {
     private var videoHeight = 0
     private var scaleMode = "zoom"
     private var textureView: TextureView? = null
-    private var orientationString = "landscape"
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
@@ -27,8 +26,6 @@ class VideoDreamService : DreamService() {
         isInteractive = false
 
         val prefs = getSharedPreferences("vid_scrsvr_prefs", MODE_PRIVATE)
-        orientationString = prefs.getString("orientation", "landscape") ?: "landscape"
-
         val uriString = prefs.getString("video_uri", null) ?: run { finish(); return }
         val soundOn = prefs.getBoolean("sound_on", false)
         val volume = prefs.getFloat("volume", 0.5f)
@@ -42,7 +39,7 @@ class VideoDreamService : DreamService() {
         textureView = tv
         setContentView(tv)
 
-        tv.post { applyOrientationRotation() }
+        tv.post { applyScale() }
 
         val uri = Uri.parse(uriString)
 
@@ -67,7 +64,7 @@ class VideoDreamService : DreamService() {
                 }
 
                 override fun onSurfaceTextureSizeChanged(st: SurfaceTexture, w: Int, h: Int) {
-                    applyOrientationRotation()
+                    applyScale()
                 }
 
                 override fun onSurfaceTextureDestroyed(st: SurfaceTexture): Boolean {
@@ -80,26 +77,6 @@ class VideoDreamService : DreamService() {
         }
     }
 
-    private fun applyOrientationRotation() {
-        val tv = textureView ?: return
-        val sw = tv.width.toFloat().takeIf { it > 0 } ?: return
-        val sh = tv.height.toFloat().takeIf { it > 0 } ?: return
-
-        val (rotation, scaleX, scaleY) = when (orientationString) {
-            "portrait" -> Triple(0f, 1f, 1f)
-            "portrait_reversed" -> Triple(180f, 1f, 1f)
-            "landscape" -> Triple(90f, sh / sw, sw / sh)
-            "landscape_reversed" -> Triple(-90f, sh / sw, sw / sh)
-            else -> Triple(0f, 1f, 1f)
-        }
-
-        tv.rotation = rotation
-        tv.scaleX = scaleX
-        tv.scaleY = scaleY
-
-        applyScale()
-    }
-
     private fun applyScale() {
         val tv = textureView ?: return
         val vw = videoWidth.takeIf { it > 0 } ?: return
@@ -108,16 +85,12 @@ class VideoDreamService : DreamService() {
         val rawW = tv.width.toFloat().takeIf { it > 0 } ?: resources.displayMetrics.widthPixels.toFloat()
         val rawH = tv.height.toFloat().takeIf { it > 0 } ?: resources.displayMetrics.heightPixels.toFloat()
 
-        val isRotated90 = orientationString == "landscape" || orientationString == "landscape_reversed"
-        val sw = if (isRotated90) rawH else rawW
-        val sh = if (isRotated90) rawW else rawH
-
         val matrix = Matrix()
 
         when (scaleMode) {
             "fit" -> {
                 // scale uniformly so entire video fits, centered, with letterbox/pillarbox
-                val scale = minOf(sw / vw, sh / vh)
+                val scale = minOf(rawW / vw, rawH / vh)
                 val scaledW = vw * scale
                 val scaledH = vh * scale
                 matrix.setScale(scaledW / rawW, scaledH / rawH)
@@ -129,7 +102,7 @@ class VideoDreamService : DreamService() {
             }
 
             "zoom" -> {
-                val scale = maxOf(sw / vw, sh / vh)
+                val scale = maxOf(rawW / vw, rawH / vh)
                 val scaledW = vw * scale
                 val scaledH = vh * scale
                 matrix.setScale(scaledW / rawW, scaledH / rawH)
@@ -138,7 +111,7 @@ class VideoDreamService : DreamService() {
 
             "adapt" -> {
                 // same as fit — intentional black bars, nothing cropped, nothing stretched
-                val scale = minOf(sw / vw, sh / vh)
+                val scale = minOf(rawW / vw, rawH / vh)
                 val scaledW = vw * scale
                 val scaledH = vh * scale
                 matrix.setScale(scaledW / rawW, scaledH / rawH)
