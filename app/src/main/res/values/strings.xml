@@ -32,7 +32,7 @@
     <string name="btn_source">Source</string>
     <string name="btn_info_content_desc">About</string>
     <string name="toast_saved">Saved!</string>
-    <string name="toast_video_access_failed">Couldn&apos;t keep access to that video. Please choose it again.</string>
+    <string name="toast_video_access_failed">Couldn\'t keep access to that video. Please choose it again.</string>
     <string name="toast_no_daydream_settings">Your phone really doesn\'t want you to find this setting huh</string>
 
     <!-- Catalog -->
