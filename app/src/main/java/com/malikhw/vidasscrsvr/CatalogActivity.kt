@@ -52,7 +52,10 @@ class CatalogActivity : AppCompatActivity() {
     private fun saveDownloadEntry(videoUrl: String, filePath: String) {
         val map = getDownloadedMap().toMutableMap()
         map[videoUrl] = filePath
-        prefs.edit().putString("downloaded_catalog", JSONObject(map as Map<*, *>).toString()).apply()
+        val json = JSONObject().apply {
+            map.forEach { (url, path) -> put(url, path) }
+        }
+        prefs.edit().putString("downloaded_catalog", json.toString()).apply()
     }
 
     private fun getAppliedUri(): String? = prefs.getString("video_uri", null)

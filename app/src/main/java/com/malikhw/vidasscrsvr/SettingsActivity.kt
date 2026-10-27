@@ -174,7 +174,7 @@ class SettingsActivity : AppCompatActivity() {
                 val idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
                 if (idx < 0 || !cursor.moveToFirst()) null else cursor.getString(idx)
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }

@@ -35,6 +35,7 @@ object DonateDialog {
 
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
         var purchasing = false
+        lateinit var render: () -> Unit
 
         val helper = DonateHelper(activity, onPurchaseSuccess = {
             dialog.dismiss()
@@ -45,7 +46,7 @@ object DonateDialog {
             render()
         })
 
-        fun render() {
+        render = {
             contentContainer.removeAllViews()
             val inflater = LayoutInflater.from(activity)
             val state = helper.state.value
