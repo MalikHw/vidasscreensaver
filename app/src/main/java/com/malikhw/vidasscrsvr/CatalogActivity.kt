@@ -33,6 +33,10 @@ data class CatalogVideo(
     val thumbUrl: String
 )
 
+
+private fun safeFileName(name: String): String =
+    name.replace(Regex("[^A-Za-z0-9._-]+"), "_").trim('_').ifEmpty { "video" }
+
 class CatalogActivity : AppCompatActivity() {
 
     private val executor = Executors.newSingleThreadExecutor()
@@ -63,9 +67,6 @@ class CatalogActivity : AppCompatActivity() {
         val uri = Uri.fromFile(file)
         prefs.edit().putString("video_uri", uri.toString()).apply()
     }
-
-    private fun safeFileName(name: String): String =
-        name.replace(Regex("[^A-Za-z0-9._-]+"), "_").trim('_').ifEmpty { "video" }
 
     private fun requireHttpUrl(value: String): URL {
         val url = URL(value)
