@@ -20,10 +20,10 @@
 
     <!-- Scale card -->
     <string name="section_scale">Scale</string>
-    <string name="rb_fit">Fit — full video visible, letterboxed</string>
-    <string name="rb_stretch">Stretch — fills screen, squishes if needed</string>
-    <string name="rb_zoom">Zoom — fills screen, crops edges</string>
-    <string name="rb_adapt">Adapt — fit + black bars (good for 9:16 on wide screens)</string>
+    <string name="rb_fit">Fit. full video visible, letterboxed</string>
+    <string name="rb_stretch">Stretch. fills screen, squishes if needed</string>
+    <string name="rb_zoom">Zoom. fills screen, crops edges</string>
+    <string name="rb_adapt">Adapt. fit + black bars (good for 9:16 on wide screens)</string>
 
     <!-- Buttons -->
     <string name="btn_save">SAVE</string>
@@ -32,6 +32,7 @@
     <string name="btn_source">Source</string>
     <string name="btn_info_content_desc">About</string>
     <string name="toast_saved">Saved!</string>
+    <string name="toast_video_access_failed">Couldn&apos;t keep access to that video. Please choose it again.</string>
     <string name="toast_no_daydream_settings">Your phone really doesn\'t want you to find this setting huh</string>
 
     <!-- Catalog -->
@@ -60,5 +61,6 @@
     <string name="donate_loading_tiers">Loading tiers\u2026</string>
     <string name="donate_info_message">This app is published under my friend\'s google account since i can\'t afford $25, by your support of donating i can reach it and make this app listed under my Play Console! + helping the development of this + other things i make :)</string>
     <string name="donate_success_toast">W Bro!</string>
+    <string name="donate_payment_unavailable">Payment is unavailable right now. Please try again.</string>
     <string name="btn_ok">OK</string>
 </resources>

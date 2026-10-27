@@ -7,7 +7,11 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-class DonateHelper(private val context: Context, private val onPurchaseSuccess: () -> Unit = {}) {
+class DonateHelper(
+    private val context: Context,
+    private val onPurchaseSuccess: () -> Unit = {},
+    private val onPurchaseError: (String) -> Unit = {}
+) {
 
     companion object {
         val PRODUCT_IDS = listOf("donation_1", "donation_2", "donation_5", "donation_10", "donation_20")
@@ -27,17 +31,19 @@ class DonateHelper(private val context: Context, private val onPurchaseSuccess: 
     val products: StateFlow<List<ProductDetails>> = _products
 
     private var billingClient: BillingClient? = null
+    private var operationScope: CoroutineScope? = null
 
     // connection
 
     fun connect(scope: CoroutineScope) {
+        operationScope = scope
         _state.value = State.Connecting
         billingClient = BillingClient.newBuilder(context)
             .setListener { result, purchases ->
                 if (result.responseCode == BillingClient.BillingResponseCode.OK) {
                     purchases?.forEach { purchase ->
                         if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
-                            kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                            operationScope?.launch(kotlinx.coroutines.Dispatchers.IO) {
                                 val consumeParams = ConsumeParams.newBuilder()
                                     .setPurchaseToken(purchase.purchaseToken)
                                     .build()
@@ -56,8 +62,15 @@ class DonateHelper(private val context: Context, private val onPurchaseSuccess: 
                                     }
                                     kotlinx.coroutines.delay(1000L * (attempt + 1))
                                 }
+                                withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                    onPurchaseError("Could not complete the donation. Please try again.")
+                                }
                             }
                         }
+                    }
+                } else {
+                    operationScope?.launch(kotlinx.coroutines.Dispatchers.Main) {
+                        onPurchaseError(result.debugMessage.ifBlank { "Payment was not completed." })
                     }
                 }
             }
@@ -85,6 +98,7 @@ class DonateHelper(private val context: Context, private val onPurchaseSuccess: 
     fun disconnect() {
         billingClient?.endConnection()
         billingClient = null
+        operationScope = null
         _state.value = State.Disconnected
     }
 

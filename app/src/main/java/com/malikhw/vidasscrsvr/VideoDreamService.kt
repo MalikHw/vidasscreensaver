@@ -19,6 +19,7 @@ class VideoDreamService : DreamService() {
     private var videoHeight = 0
     private var scaleMode = "zoom"
     private var textureView: TextureView? = null
+    private var videoSurface: Surface? = null
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
@@ -29,6 +30,7 @@ class VideoDreamService : DreamService() {
         val uriString = prefs.getString("video_uri", null) ?: run { finish(); return }
         val soundOn = prefs.getBoolean("sound_on", false)
         val volume = prefs.getFloat("volume", 0.5f)
+        val loop = prefs.getBoolean("loop", true)
         scaleMode = prefs.getString("scale_mode", "zoom") ?: "zoom"
 
         val tv = TextureView(this)
@@ -45,7 +47,7 @@ class VideoDreamService : DreamService() {
 
         player = ExoPlayer.Builder(this).build().also { p ->
             p.setMediaItem(MediaItem.fromUri(uri))
-            p.repeatMode = Player.REPEAT_MODE_ONE
+            p.repeatMode = if (loop) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
             p.volume = if (soundOn) volume else 0f
 
             p.addListener(object : Player.Listener {
@@ -54,11 +56,17 @@ class VideoDreamService : DreamService() {
                     videoHeight = size.height
                     applyScale()
                 }
+
+                override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                    finish()
+                }
             })
 
             tv.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
                 override fun onSurfaceTextureAvailable(st: SurfaceTexture, w: Int, h: Int) {
-                    p.setVideoSurface(Surface(st))
+                    videoSurface?.release()
+                    videoSurface = Surface(st)
+                    p.setVideoSurface(videoSurface)
                     p.prepare()
                     p.play()
                 }
@@ -69,6 +77,8 @@ class VideoDreamService : DreamService() {
 
                 override fun onSurfaceTextureDestroyed(st: SurfaceTexture): Boolean {
                     p.setVideoSurface(null)
+                    videoSurface?.release()
+                    videoSurface = null
                     return true
                 }
 
@@ -134,6 +144,9 @@ class VideoDreamService : DreamService() {
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
+        player?.setVideoSurface(null)
+        videoSurface?.release()
+        videoSurface = null
         player?.release()
         player = null
         textureView = null

@@ -20,7 +20,12 @@ class SettingsActivity : AppCompatActivity() {
 
     private val videoPicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@registerForActivityResult
-        contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        try {
+            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        } catch (_: SecurityException) {
+            Toast.makeText(this, getString(R.string.toast_video_access_failed), Toast.LENGTH_LONG).show()
+            return@registerForActivityResult
+        }
         prefs.edit().putString("video_uri", uri.toString()).apply()
         val name = getVideoDisplayName(uri)
         binding.tvSelectedFile.text = getString(R.string.selected_prefix, name)
@@ -167,8 +172,7 @@ class SettingsActivity : AppCompatActivity() {
         return try {
             contentResolver.query(uri, null, null, null, null)?.use { cursor ->
                 val idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                cursor.moveToFirst()
-                cursor.getString(idx)
+                if (idx < 0 || !cursor.moveToFirst()) null else cursor.getString(idx)
             }
         } catch (e: Exception) {
             null

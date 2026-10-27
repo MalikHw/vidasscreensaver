@@ -38,6 +38,7 @@ class CatalogActivity : AppCompatActivity() {
     private val executor = Executors.newSingleThreadExecutor()
     private val mainHandler by lazy { android.os.Handler(mainLooper) }
     private val prefs by lazy { getSharedPreferences("vid_scrsvr_prefs", MODE_PRIVATE) }
+    private var downloadDialog: AlertDialog? = null
     private fun getDownloadedMap(): Map<String, String> {
         val raw = prefs.getString("downloaded_catalog", null) ?: return emptyMap()
         return try {
@@ -58,6 +59,15 @@ class CatalogActivity : AppCompatActivity() {
     private fun applyLocalFile(file: File) {
         val uri = Uri.fromFile(file)
         prefs.edit().putString("video_uri", uri.toString()).apply()
+    }
+
+    private fun safeFileName(name: String): String =
+        name.replace(Regex("[^A-Za-z0-9._-]+"), "_").trim('_').ifEmpty { "video" }
+
+    private fun requireHttpUrl(value: String): URL {
+        val url = URL(value)
+        require(url.protocol == "https") { "Only secure catalog URLs are supported" }
+        return url
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,6 +96,8 @@ class CatalogActivity : AppCompatActivity() {
                     .openConnection() as HttpURLConnection
                 conn.connectTimeout = 8000
                 conn.readTimeout = 8000
+                conn.requestMethod = "GET"
+                check(conn.responseCode in 200..299) { "Catalog request failed (${conn.responseCode})" }
                 val json = conn.inputStream.bufferedReader().readText()
                 conn.disconnect()
 
@@ -211,55 +223,58 @@ class CatalogActivity : AppCompatActivity() {
             .setView(dialogView)
             .setCancelable(false)
             .create()
+        downloadDialog = dialog
         dialog.show()
 
-        val destFile = File(filesDir, "catalog_${video.name.replace(" ", "_")}.mp4")
+        val destFile = File(filesDir, "catalog_${safeFileName(video.name)}.mp4")
 
         executor.execute {
             try {
-                val conn = URL(video.videoUrl).openConnection() as HttpURLConnection
+                val conn = requireHttpUrl(video.videoUrl).openConnection() as HttpURLConnection
                 conn.connectTimeout = 10000
                 conn.readTimeout = 30000
+                conn.requestMethod = "GET"
+                check(conn.responseCode in 200..299) { "Video request failed (${conn.responseCode})" }
                 val total = conn.getHeaderField("Content-Length")?.toLongOrNull() ?: conn.contentLength.toLong()
-                val input = conn.inputStream
-                val out = FileOutputStream(destFile)
-                val buf = ByteArray(8192)
-                var downloaded = 0L
-                var read: Int
+                conn.inputStream.use { input ->
+                    FileOutputStream(destFile).use { out ->
+                        val buf = ByteArray(8192)
+                        var downloaded = 0L
+                        var read: Int
 
-                while (input.read(buf).also { read = it } != -1) {
-                    out.write(buf, 0, read)
-                    downloaded += read
-                    if (total > 0) {
-                        val pct = (downloaded * 100 / total).toInt()
-                        mainHandler.post {
-                            progress.progress = pct
-                            tvPercent.text = "$pct%"
+                        while (input.read(buf).also { read = it } != -1) {
+                            out.write(buf, 0, read)
+                            downloaded += read
+                            if (total > 0) {
+                                val pct = (downloaded * 100 / total).toInt()
+                                mainHandler.post {
+                                    progress.progress = pct
+                                    tvPercent.text = "$pct%"
+                                }
+                            }
                         }
                     }
                 }
-                out.flush()
-                out.close()
-                input.close()
                 conn.disconnect()
 
                 if (video.thumbUrl.isNotEmpty() && video.thumbUrl.startsWith("http")) {
                     try {
                         val thumbExt = if (video.thumbUrl.contains(".png", ignoreCase = true)) ".png" else ".jpg"
-                        val destThumbFile = File(filesDir, "catalog_${video.name.replace(" ", "_")}_thumb$thumbExt")
-                        val tConn = URL(video.thumbUrl).openConnection() as HttpURLConnection
+                        val destThumbFile = File(filesDir, "catalog_${safeFileName(video.name)}_thumb$thumbExt")
+                        val tConn = requireHttpUrl(video.thumbUrl).openConnection() as HttpURLConnection
                         tConn.connectTimeout = 5000
                         tConn.readTimeout = 10000
-                        val tInput = tConn.inputStream
-                        val tOut = FileOutputStream(destThumbFile)
-                        val tBuf = ByteArray(8192)
-                        var tRead: Int
-                        while (tInput.read(tBuf).also { tRead = it } != -1) {
-                            tOut.write(tBuf, 0, tRead)
+                        tConn.requestMethod = "GET"
+                        check(tConn.responseCode in 200..299) { "Thumbnail request failed (${tConn.responseCode})" }
+                        tConn.inputStream.use { tInput ->
+                            FileOutputStream(destThumbFile).use { tOut ->
+                                val tBuf = ByteArray(8192)
+                                var tRead: Int
+                                while (tInput.read(tBuf).also { tRead = it } != -1) {
+                                    tOut.write(tBuf, 0, tRead)
+                                }
+                            }
                         }
-                        tOut.flush()
-                        tOut.close()
-                        tInput.close()
                         tConn.disconnect()
                     } catch (_: Exception) {
                     }
@@ -268,7 +283,9 @@ class CatalogActivity : AppCompatActivity() {
                 saveDownloadEntry(video.videoUrl, destFile.absolutePath)
                 applyLocalFile(destFile)
                 mainHandler.post {
+                    if (isDestroyed) return@post
                     dialog.dismiss()
+                    downloadDialog = null
                     Toast.makeText(this, getString(R.string.catalog_applied, video.name), Toast.LENGTH_SHORT).show()
                     val recycler = findViewById<RecyclerView>(R.id.rvCatalog)
                     (recycler.adapter as? CatalogAdapter)?.updateState(
@@ -280,7 +297,9 @@ class CatalogActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 destFile.delete()
                 mainHandler.post {
+                    if (isDestroyed) return@post
                     dialog.dismiss()
+                    downloadDialog = null
                     Toast.makeText(this, getString(R.string.download_failed, e.message), Toast.LENGTH_LONG).show()
                 }
             }
@@ -288,6 +307,8 @@ class CatalogActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        downloadDialog?.dismiss()
+        downloadDialog = null
         super.onDestroy()
         executor.shutdownNow()
     }
@@ -338,7 +359,7 @@ class CatalogAdapter(
                     holder.thumb.setImageBitmap(bmp)
                 }
             } else {
-                val safeName = video.name.replace(" ", "_")
+                val safeName = safeFileName(video.name)
                 val pngThumb = File(holder.itemView.context.filesDir, "catalog_${safeName}_thumb.png")
                 val jpgThumb = File(holder.itemView.context.filesDir, "catalog_${safeName}_thumb.jpg")
                 val localThumb = when {

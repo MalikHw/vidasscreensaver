@@ -39,6 +39,10 @@ object DonateDialog {
         val helper = DonateHelper(activity, onPurchaseSuccess = {
             dialog.dismiss()
             Toast.makeText(activity, activity.getString(R.string.donate_success_toast), Toast.LENGTH_LONG).show()
+        }, onPurchaseError = { message ->
+            purchasing = false
+            Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
+            render()
         })
 
         fun render() {
@@ -99,7 +103,16 @@ object DonateDialog {
                         tierBtn.setOnClickListener {
                             purchasing = true
                             render()
-                            helper.launchPurchase(activity, product)
+                            val result = helper.launchPurchase(activity, product)
+                            if (result.responseCode != com.android.billingclient.api.BillingClient.BillingResponseCode.OK) {
+                                purchasing = false
+                                render()
+                                Toast.makeText(
+                                    activity,
+                                    result.debugMessage.ifBlank { activity.getString(R.string.donate_payment_unavailable) },
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
                             // don't dismiss here, wait for onPurchaseSuccess so
                             // the consume/ack round trip completes first
                         }
