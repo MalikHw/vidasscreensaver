@@ -11,8 +11,8 @@ android {
         applicationId "com.malikhw.vidasscrsvr"
         minSdk 24
         targetSdk 36
-        versionCode 11
-        versionName "1.2.3"
+        versionCode 12
+        versionName "1.2.4"
     }
 
     signingConfigs {
@@ -40,7 +40,8 @@ android {
         debug { }
         release {
             signingConfig signingConfigs.release
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
