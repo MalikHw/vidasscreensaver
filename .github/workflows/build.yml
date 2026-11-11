@@ -59,6 +59,7 @@ jobs:
 
       - name: Build debug + release APK and release AAB
         env:
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g"
           KEYSTORE_FILE: ${{ secrets.KEYSTORE_BASE64 != '' && format('{0}/release.keystore', runner.temp) || '' }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
